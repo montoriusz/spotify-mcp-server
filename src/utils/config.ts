@@ -9,6 +9,7 @@ export interface SpotifyConfig {
   clientId: string;
   clientSecret: string;
   redirectUri: string;
+  publicRedirectUri?: string;
   accessToken?: string;
   refreshToken?: string;
 }

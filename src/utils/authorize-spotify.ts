@@ -50,7 +50,7 @@ export async function authorizeSpotify(terminalMode: boolean): Promise<void> {
   const authParams = new URLSearchParams({
     client_id: config.clientId,
     response_type: 'code',
-    redirect_uri: config.redirectUri,
+    redirect_uri: config.publicRedirectUri || config.redirectUri,
     scope: scopes.join(' '),
     state: state,
     show_dialog: 'true',
