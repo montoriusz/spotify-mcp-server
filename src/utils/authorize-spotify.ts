@@ -184,7 +184,7 @@ async function exchangeCodeForToken(
   const params = new URLSearchParams();
   params.append('grant_type', 'authorization_code');
   params.append('code', code);
-  params.append('redirect_uri', config.redirectUri);
+  params.append('redirect_uri', config.publicRedirectUri || config.redirectUri);
 
   const response = await fetch(tokenUrl, {
     method: 'POST',
