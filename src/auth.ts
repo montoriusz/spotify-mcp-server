@@ -1,11 +1,18 @@
 #!/usr/bin/env node
 
-import { authorizeSpotify } from './utils.js';
+import { authorizeSpotify } from './utils/authorize-spotify.js';
 
-console.log('Starting Spotify authentication flow...');
-authorizeSpotify()
+const terminalMode = process.stdout.isTTY;
+
+if (terminalMode) {
+  console.log('Starting Spotify authentication flow...');
+}
+
+authorizeSpotify(terminalMode)
   .then(() => {
-    console.log('Authentication completed successfully!');
+    if (terminalMode) {
+      console.log('Authentication completed successfully!');
+    }
     process.exit(0);
   })
   .catch((error) => {

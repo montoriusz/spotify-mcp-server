@@ -1,3 +1,4 @@
+import { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import type {
   ServerNotification,
@@ -10,26 +11,11 @@ export type SpotifyHandlerExtra = RequestHandlerExtra<
   ServerNotification
 >;
 
-export type tool<Args extends z.ZodRawShape> = {
+export type Tool<Args extends z.ZodRawShape> = {
   name: string;
   description: string;
   schema: Args;
-  handler: (
-    args: z.infer<z.ZodObject<Args>>,
-    extra: SpotifyHandlerExtra,
-  ) =>
-    | Promise<{
-        content: Array<{
-          type: 'text';
-          text: string;
-        }>;
-      }>
-    | {
-        content: Array<{
-          type: 'text';
-          text: string;
-        }>;
-      };
+  handler: ToolCallback<Args>;
 };
 
 export interface SpotifyArtist {

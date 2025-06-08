@@ -1,7 +1,8 @@
 import type { MaxInt } from '@spotify/web-api-ts-sdk';
 import { z } from 'zod';
-import type { SpotifyHandlerExtra, SpotifyTrack, tool } from './types.js';
-import { formatDuration, handleSpotifyRequest } from './utils.js';
+import type { SpotifyHandlerExtra, SpotifyTrack, Tool } from './types.js';
+import { handleSpotifyRequest } from './utils/handle-spotify-request.js';
+import { formatDuration } from './utils/format-duration.js';
 
 function isTrack(item: any): item is SpotifyTrack {
   return (
@@ -13,7 +14,7 @@ function isTrack(item: any): item is SpotifyTrack {
   );
 }
 
-const searchSpotify: tool<{
+const searchSpotify: Tool<{
   query: z.ZodString;
   type: z.ZodEnum<['track', 'album', 'artist', 'playlist']>;
   limit: z.ZodOptional<z.ZodNumber>;
@@ -111,7 +112,7 @@ const searchSpotify: tool<{
   },
 };
 
-const getNowPlaying: tool<Record<string, never>> = {
+const getNowPlaying: Tool<Record<string, never>> = {
   name: 'getNowPlaying',
   description: 'Get information about the currently playing track on Spotify',
   schema: {},
@@ -121,7 +122,9 @@ const getNowPlaying: tool<Record<string, never>> = {
         return await spotifyApi.player.getCurrentlyPlayingTrack();
       });
 
-      if (!currentTrack?.item) {
+      const { item, context } = currentTrack ?? {};
+
+      if (!item) {
         return {
           content: [
             {
@@ -131,8 +134,6 @@ const getNowPlaying: tool<Record<string, never>> = {
           ],
         };
       }
-
-      const item = currentTrack.item;
 
       if (!isTrack(item)) {
         return {
@@ -157,11 +158,14 @@ const getNowPlaying: tool<Record<string, never>> = {
             type: 'text',
             text:
               `# Currently ${isPlaying ? 'Playing' : 'Paused'}\n\n` +
+              `**ID**: ${item.id}\n` +
               `**Track**: "${item.name}"\n` +
               `**Artist**: ${artists}\n` +
               `**Album**: ${album}\n` +
               `**Progress**: ${progress} / ${duration}\n` +
-              `**ID**: ${item.id}`,
+              (context
+                ? `**Context**: ${context.type}, URI: ${context.uri}`
+                : ''),
           },
         ],
       };
@@ -180,7 +184,7 @@ const getNowPlaying: tool<Record<string, never>> = {
   },
 };
 
-const getMyPlaylists: tool<{
+const getMyPlaylists: Tool<{
   limit: z.ZodOptional<z.ZodNumber>;
 }> = {
   name: 'getMyPlaylists',
@@ -215,7 +219,7 @@ const getMyPlaylists: tool<{
 
     const formattedPlaylists = playlists.items
       .map((playlist, i) => {
-        const tracksTotal = playlist.tracks?.total ? playlist.tracks.total : 0;
+        const tracksTotal = playlist.tracks?.total ?? 0;
         return `${i + 1}. "${playlist.name}" (${tracksTotal} tracks) - ID: ${
           playlist.id
         }`;
@@ -233,7 +237,7 @@ const getMyPlaylists: tool<{
   },
 };
 
-const getPlaylistTracks: tool<{
+const getPlaylistTracks: Tool<{
   playlistId: z.ZodString;
   limit: z.ZodOptional<z.ZodNumber>;
 }> = {
@@ -297,7 +301,7 @@ const getPlaylistTracks: tool<{
   },
 };
 
-const getRecentlyPlayed: tool<{
+const getRecentlyPlayed: Tool<{
   limit: z.ZodOptional<z.ZodNumber>;
 }> = {
   name: 'getRecentlyPlayed',
@@ -356,10 +360,55 @@ const getRecentlyPlayed: tool<{
   },
 };
 
+const getAvailableDevices: Tool<Record<string, never>> = {
+  name: 'getAvailableDevices',
+  description:
+    "Get information about a user's available Spotify Connect devices.",
+  schema: {},
+  handler: async (_args, _extra: SpotifyHandlerExtra) => {
+    const { devices } = await handleSpotifyRequest(async (spotifyApi) => {
+      return await spotifyApi.player.getAvailableDevices();
+    });
+
+    if (devices.length === 0) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: 'No devices available',
+          },
+        ],
+      };
+    }
+
+    const formattedDevices = devices
+      .map((device, i) => {
+        return [
+          `## ${i + 1}. "${device.name}"`,
+          `**ID**: ${device.id}`,
+          `**Type**: ${device.type}`,
+          `**Active**: ${device.is_active ? 'Yes' : 'No'}`,
+          `**Volume**: ${device.volume_percent}%`,
+        ].join('\n');
+      })
+      .join('\n');
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `# Available Devices\n\n${formattedDevices}`,
+        },
+      ],
+    };
+  },
+};
+
 export const readTools = [
   searchSpotify,
   getNowPlaying,
   getMyPlaylists,
   getPlaylistTracks,
   getRecentlyPlayed,
+  getAvailableDevices,
 ];
