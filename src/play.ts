@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import type { SpotifyHandlerExtra, tool } from './types.js';
-import { handleSpotifyRequest } from './utils.js';
+import type { SpotifyHandlerExtra, Tool } from './types.js';
+import { handleSpotifyRequest } from './utils/handle-spotify-request.js';
 
-const playMusic: tool<{
+const playMusic: Tool<{
   uri: z.ZodOptional<z.ZodString>;
   type: z.ZodOptional<z.ZodEnum<['track', 'album', 'artist', 'playlist']>>;
   id: z.ZodOptional<z.ZodString>;
@@ -73,7 +73,7 @@ const playMusic: tool<{
   },
 };
 
-const pausePlayback: tool<{
+const pausePlayback: Tool<{
   deviceId: z.ZodOptional<z.ZodString>;
 }> = {
   name: 'pausePlayback',
@@ -102,7 +102,7 @@ const pausePlayback: tool<{
   },
 };
 
-const skipToNext: tool<{
+const skipToNext: Tool<{
   deviceId: z.ZodOptional<z.ZodString>;
 }> = {
   name: 'skipToNext',
@@ -131,7 +131,7 @@ const skipToNext: tool<{
   },
 };
 
-const skipToPrevious: tool<{
+const skipToPrevious: Tool<{
   deviceId: z.ZodOptional<z.ZodString>;
 }> = {
   name: 'skipToPrevious',
@@ -161,7 +161,7 @@ const skipToPrevious: tool<{
   },
 };
 
-const createPlaylist: tool<{
+const createPlaylist: Tool<{
   name: z.ZodString;
   description: z.ZodOptional<z.ZodString>;
   public: z.ZodOptional<z.ZodBoolean>;
@@ -203,7 +203,7 @@ const createPlaylist: tool<{
   },
 };
 
-const addTracksToPlaylist: tool<{
+const addTracksToPlaylist: Tool<{
   playlistId: z.ZodString;
   trackIds: z.ZodArray<z.ZodString>;
   position: z.ZodOptional<z.ZodNumber>;
@@ -269,7 +269,7 @@ const addTracksToPlaylist: tool<{
   },
 };
 
-const resumePlayback: tool<{
+const resumePlayback: Tool<{
   deviceId: z.ZodOptional<z.ZodString>;
 }> = {
   name: 'resumePlayback',
@@ -298,7 +298,7 @@ const resumePlayback: tool<{
   },
 };
 
-const addToQueue: tool<{
+const addToQueue: Tool<{
   uri: z.ZodOptional<z.ZodString>;
   type: z.ZodOptional<z.ZodEnum<['track', 'album', 'artist', 'playlist']>>;
   id: z.ZodOptional<z.ZodString>;
